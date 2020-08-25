@@ -453,6 +453,7 @@ public class ServiceManager implements RecordListener<Service> {
      */
     public void createServiceIfAbsent(String namespaceId, String serviceName, boolean local, Cluster cluster)
             throws NacosException {
+//        从serviceMap Map(namespace, Map(group::serviceName, Service)) 拿数据
         Service service = getService(namespaceId, serviceName);
         if (service == null) {
             
@@ -488,16 +489,18 @@ public class ServiceManager implements RecordListener<Service> {
      * @throws Exception any error occurred in the process
      */
     public void registerInstance(String namespaceId, String serviceName, Instance instance) throws NacosException {
-        
+
+//        初始化/更新serviceMap  Map(namespace, Map(group::serviceName, Service)) 完成service健康定时检查
         createEmptyService(namespaceId, serviceName, instance.isEphemeral());
-        
+
+//        从serviceMap中取service
         Service service = getService(namespaceId, serviceName);
         
         if (service == null) {
             throw new NacosException(NacosException.INVALID_PARAM,
                     "service not found, namespace: " + namespaceId + ", service: " + serviceName);
         }
-        
+
         addInstance(namespaceId, serviceName, instance.isEphemeral(), instance);
     }
     
@@ -716,8 +719,12 @@ public class ServiceManager implements RecordListener<Service> {
     }
     
     private void putServiceAndInit(Service service) throws NacosException {
+//        service放入serviceMap
         putService(service);
+//        定时线程池启动线程 延迟5秒执行 每隔5秒 进行这个service健康监测
         service.init();
+
+//        （弱一致性）DistroConsistencyServiceImpl 或 （强一致性）RaftConsistencyServiceImpl的监听
         consistencyService
                 .listen(KeyBuilder.buildInstanceListKey(service.getNamespaceId(), service.getName(), true), service);
         consistencyService

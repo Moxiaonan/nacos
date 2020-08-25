@@ -102,7 +102,8 @@ public class InstanceController {
             return result.toString();
         }
     };
-    
+
+//    入口-注册服务
     /**
      * Register new instance.
      *
@@ -118,7 +119,8 @@ public class InstanceController {
         final String serviceName = WebUtils.required(request, CommonParams.SERVICE_NAME);
         final String namespaceId = WebUtils
                 .optional(request, CommonParams.NAMESPACE_ID, Constants.DEFAULT_NAMESPACE_ID);
-        
+
+//        封装Instance信息
         final Instance instance = parseInstance(request);
         
         serviceManager.registerInstance(namespaceId, serviceName, instance);
